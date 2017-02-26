@@ -19,7 +19,7 @@ function padLeft(array, length) {
 exports.marshalRecord = function marshalRecord(timestamp, origin, sender, tag, value, documentHash, previousRecordHash) {
   arguguard('marshalRecord', [Amorph, Amorph, Amorph, Amorph, Amorph, Amorph, Amorph], arguments)
 
-  var expectedLengths = [4, 20, 20, 7, 5, 32, 32]
+  var expectedLengths = [4, 20, 20, 4, 8, 32, 32]
   var array = []
 
   expectedLengths.forEach((expectedLength, index) => {
@@ -49,10 +49,10 @@ exports.unmarshalRecord = function parseRecord(record) {
       return array.slice(24, 44)
     }),
     tag: record.as('array', (array) => {
-      return array.slice(44, 51)
+      return array.slice(44, 48)
     }),
     value: record.as('array', (array) => {
-      return array.slice(51, 56)
+      return array.slice(48, 56)
     }),
     documentHash: record.as('array', (array) => {
       return array.slice(56, 88)

@@ -16,8 +16,8 @@ describe('planetoid-utils', () => {
   const timestamp = random(4)
   const origin = random(20)
   const sender = random(20)
-  const tag = random(7)
-  const value = random(5)
+  const tag = random(4)
+  const value = random(8)
   const documentHash = random(32)
   const previousRecordHash = random(32)
   let record
