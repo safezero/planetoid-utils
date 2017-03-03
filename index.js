@@ -2,6 +2,7 @@ const Amorph = require('amorph')
 const arguguard = require('arguguard')
 const BytesLengthError = require('./errors/BytesLengthError')
 const amorphBufferPlugin = require('amorph-buffer')
+const ipfsUtils = require('ipfs-amorph-utils')
 
 Amorph.loadPlugin(amorphBufferPlugin)
 Amorph.ready()
@@ -61,4 +62,26 @@ exports.unmarshalRecord = function parseRecord(record) {
       return array.slice(88, 120)
     })
   }
+}
+
+function isAllZeros(amorph) {
+  return amorph.to('array').reduce((a, b) => {
+    return a + b
+  }, 0) === 0
+}
+
+exports.downloadRecords = function downloadRecords(recordHash, getter, setter) {
+  arguguard('download', [Amorph, 'function', 'function'], arguments)
+  const recordMultihash = ipfsUtils.unstripSha2256Hash(recordHash)
+  return getter(recordMultihash).then((record) => {
+    const unmarhalledRecord = exports.unmarshalRecord(record)
+    return setter(recordHash, unmarhalledRecord).then(() => {
+      const previousRecordHash = unmarhalledRecord.previousRecordHash
+      if (isAllZeros(previousRecordHash)) {
+        return
+      } else {
+        return exports.downloadRecords(previousRecordHash, getter, setter)
+      }
+    })
+  })
 }
