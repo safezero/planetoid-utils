@@ -34,34 +34,38 @@ exports.marshalRecord = function marshalRecord(timestamp, origin, sender, tag, v
   return new Amorph(array, 'array')
 }
 
-exports.unmarshalRecord = function parseRecord(record) {
+exports.unmarshalRecord = function unmarshalRecord(marshalledRecord) {
   arguguard('unmarshalRecord', [Amorph], arguments)
-  if (record.to('array').length !== 120) {
-    throw new BytesLengthError(`Record should be 120 bytes, received ${record.to('array').length}`)
+  const marshalledRecordLength = marshalledRecord.to('array').length
+  if (marshalledRecordLength !== 120) {
+    throw new BytesLengthError(`Record should be 120 bytes, received ${marshalledRecordLength}`)
   }
-  return {
-    timestamp: record.as('array', (array) => {
+  const record = {
+    timestamp: marshalledRecord.as('array', (array) => {
       return array.slice(0, 4)
     }),
-    origin: record.as('array', (array) => {
+    origin: marshalledRecord.as('array', (array) => {
       return array.slice(4, 24)
     }),
-    sender: record.as('array', (array) => {
+    sender: marshalledRecord.as('array', (array) => {
       return array.slice(24, 44)
     }),
-    tag: record.as('array', (array) => {
+    tag: marshalledRecord.as('array', (array) => {
       return array.slice(44, 48)
     }),
-    value: record.as('array', (array) => {
+    value: marshalledRecord.as('array', (array) => {
       return array.slice(48, 56)
     }),
-    documentHash: record.as('array', (array) => {
+    documentHash: marshalledRecord.as('array', (array) => {
       return array.slice(56, 88)
     }),
-    previousRecordHash: record.as('array', (array) => {
+    previousRecordHash: marshalledRecord.as('array', (array) => {
       return array.slice(88, 120)
     })
   }
+  record.documentMultihash = ipfsUtils.unstripSha2256Hash(record.documentHash)
+  record.previousRecordMultihash = ipfsUtils.unstripSha2256Hash(record.previousRecordHash)
+  return record
 }
 
 function isAllZeros(amorph) {

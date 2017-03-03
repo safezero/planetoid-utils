@@ -79,7 +79,9 @@ describe('planetoid-utils', () => {
         'tag',
         'value',
         'documentHash',
-        'previousRecordHash'
+        'previousRecordHash',
+        'documentMultihash',
+        'previousRecordMultihash'
       ])
       const param = params[params.length - index - 1]
       downloadedRecord.timestamp.should.amorphEqual(param.timestamp, 'array')
