@@ -21,14 +21,13 @@
     "amorph-base58": "^1.0.1",
     "amorph-buffer": "^1.1.1",
     "arguguard": "0.0.6",
-    "ipfs-amorph-utils": "0.0.0",
     "testable-error": "^0.1.1"
   },
   "devDependencies": {
     "amorph-buffer": "^1.1.1",
     "chai": "^3.5.0",
     "chai-amorph": "0.0.2",
-    "ipfs-amorph-api": "0.0.3",
+    "keccak256-amorph": "0.0.1",
     "mocha": "^3.2.0",
     "q": "^1.4.1",
     "random-amorph": "0.0.1"

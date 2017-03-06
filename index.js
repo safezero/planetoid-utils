@@ -2,7 +2,6 @@ const Amorph = require('amorph')
 const arguguard = require('arguguard')
 const BytesLengthError = require('./errors/BytesLengthError')
 const amorphBufferPlugin = require('amorph-buffer')
-const ipfsUtils = require('ipfs-amorph-utils')
 
 Amorph.loadPlugin(amorphBufferPlugin)
 Amorph.ready()
@@ -17,10 +16,10 @@ function padLeft(array, length) {
   return Array(length - array.length).fill(0).concat(array)
 }
 
-exports.marshalRecord = function marshalRecord(timestamp, origin, sender, tag, value, documentHash, previousRecordHash) {
-  arguguard('marshalRecord', [Amorph, Amorph, Amorph, Amorph, Amorph, Amorph, Amorph], arguments)
+exports.marshalRecord = function marshalRecord(timestamp, sender, value, documentHash, previousRecordHash) {
+  arguguard('marshalRecord', [Amorph, Amorph, Amorph, Amorph, Amorph], arguments)
 
-  var expectedLengths = [4, 20, 20, 4, 8, 32, 32]
+  var expectedLengths = [4, 20, 8, 32, 32]
   var array = []
 
   expectedLengths.forEach((expectedLength, index) => {
@@ -37,34 +36,26 @@ exports.marshalRecord = function marshalRecord(timestamp, origin, sender, tag, v
 exports.unmarshalRecord = function unmarshalRecord(marshalledRecord) {
   arguguard('unmarshalRecord', [Amorph], arguments)
   const marshalledRecordLength = marshalledRecord.to('array').length
-  if (marshalledRecordLength !== 120) {
-    throw new BytesLengthError(`Record should be 120 bytes, received ${marshalledRecordLength}`)
+  if (marshalledRecordLength !== 96) {
+    throw new BytesLengthError(`Record should be 120 bytes, received ${marshalledRecordLength }`)
   }
   const record = {
     timestamp: marshalledRecord.as('array', (array) => {
       return array.slice(0, 4)
     }),
-    origin: marshalledRecord.as('array', (array) => {
+    sender: marshalledRecord.as('array', (array) => {
       return array.slice(4, 24)
     }),
-    sender: marshalledRecord.as('array', (array) => {
-      return array.slice(24, 44)
-    }),
-    tag: marshalledRecord.as('array', (array) => {
-      return array.slice(44, 48)
-    }),
     value: marshalledRecord.as('array', (array) => {
-      return array.slice(48, 56)
+      return array.slice(24, 32)
     }),
     documentHash: marshalledRecord.as('array', (array) => {
-      return array.slice(56, 88)
+      return array.slice(32, 64)
     }),
     previousRecordHash: marshalledRecord.as('array', (array) => {
-      return array.slice(88, 120)
+      return array.slice(64, 96)
     })
   }
-  record.documentMultihash = ipfsUtils.unstripSha2256Hash(record.documentHash)
-  record.previousRecordMultihash = ipfsUtils.unstripSha2256Hash(record.previousRecordHash)
   return record
 }
 
@@ -76,8 +67,7 @@ function isAllZeros(amorph) {
 
 exports.downloadRecords = function downloadRecords(recordHash, getter, setter) {
   arguguard('download', [Amorph, 'function', 'function'], arguments)
-  const recordMultihash = ipfsUtils.unstripSha2256Hash(recordHash)
-  return getter(recordMultihash).then((record) => {
+  return getter(recordHash).then((record) => {
     const unmarhalledRecord = exports.unmarshalRecord(record)
     return setter(recordHash, unmarhalledRecord).then(() => {
       const previousRecordHash = unmarhalledRecord.previousRecordHash

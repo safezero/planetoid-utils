@@ -4,28 +4,32 @@ const BytesLengthError = require('./errors/BytesLengthError')
 const crypto = require('crypto')
 const Amorph = require('amorph')
 const chaiAmorph = require('chai-amorph')
-const ipfsUtils = require('ipfs-amorph-utils')
-const IpfsApi = require('ipfs-amorph-api')
 const Q = require('q')
 const random = require('random-amorph')
-
-const ipfsApi = new IpfsApi({
-  protocol: 'https',
-  host: 'ipfs.infura.io',
-  port: 5001
-})
+const keccak256 = require('keccak256-amorph')
 
 chai.use(chaiAmorph)
 chai.should()
+
+const tempDb = {}
+
+const tempDbApi = {
+  addFile: function addFile(file) {
+    const fileHash = keccak256(file)
+    tempDb[fileHash.to('hex')] = file
+  },
+  getFile: function getFile(fileHash) {
+    return tempDb[fileHash.to('hex')]
+  }
+}
+
 
 describe('planetoid-utils', () => {
 
   const params = Array(10).fill(0).map(() => {
     return {
       timestamp: random(4),
-      origin: random(20),
       sender: random(20),
-      tag: random(4),
       value: random(8),
       documentHash: random(32),
     }
@@ -39,31 +43,33 @@ describe('planetoid-utils', () => {
       params[index].previousRecordHash = recordHash
       const record = utils.marshalRecord(
         param.timestamp,
-        param.origin,
         param.sender,
-        param.tag,
         param.value,
         param.documentHash,
         recordHash
       )
-      recordHash = ipfsUtils.stripSha2256Multihash(ipfsUtils.getUnixFileMultihash(
-        record
-      ))
+      recordHash = keccak256(record)
       return record
     })
     records.push(..._records)
   })
 
-  it('should upload all 10 records to ipfs', () => {
-    return Q.all(records.map((record) => {
-      return ipfsApi.addFile(record)
-    }))
+  it('each record should be 96 bytes long', () => {
+    records.forEach((record) => {
+      record.to('array').should.have.length(96)
+    })
+  })
+
+  it('should add all 10 records tempdb', () => {
+    records.forEach((record) => {
+      tempDbApi.addFile(record)
+    })
   })
 
   it('should download records', () => {
-    return utils.downloadRecords(recordHash, (recordMultihash) => {
-      return ipfsApi.getFile(recordMultihash)
-    }, (recordMultihash, record) => {
+    return utils.downloadRecords(recordHash, (_recordHash) => {
+      return Q.resolve(tempDbApi.getFile(_recordHash))
+    }, (_recordHash, record) => {
       downloadedRecords.push(record)
       return Q.resolve()
     })
@@ -74,20 +80,14 @@ describe('planetoid-utils', () => {
     downloadedRecords.forEach((downloadedRecord, index) => {
       downloadedRecord.should.have.keys([
         'timestamp',
-        'origin',
         'sender',
-        'tag',
         'value',
         'documentHash',
-        'previousRecordHash',
-        'documentMultihash',
-        'previousRecordMultihash'
+        'previousRecordHash'
       ])
       const param = params[params.length - index - 1]
       downloadedRecord.timestamp.should.amorphEqual(param.timestamp, 'array')
-      downloadedRecord.origin.should.amorphEqual(param.origin)
       downloadedRecord.sender.should.amorphEqual(param.sender)
-      downloadedRecord.tag.should.amorphEqual(param.tag)
       downloadedRecord.value.should.amorphEqual(param.value)
       downloadedRecord.documentHash.should.amorphEqual(param.documentHash)
       downloadedRecord.previousRecordHash.should.amorphEqual(param.previousRecordHash)
@@ -97,10 +97,10 @@ describe('planetoid-utils', () => {
   it('should throw byteslength error when marshalling with bad arguments lengths', () => {
     const param = params[0]
     ;(() => {
-      utils.marshalRecord(random(3), param.origin, param.sender, param.tag, param.value, param.documentHash, param.previousRecordHash)
+      utils.marshalRecord(random(3), param.sender, param.value, param.documentHash, param.previousRecordHash)
     }).should.throw(BytesLengthError)
     ;(() => {
-      utils.marshalRecord(param.timestamp, param.origin, param.sender, param.tag, random(3), param.documentHash, param.previousRecordHash)
+      utils.marshalRecord(param.timestamp, param.sender, random(3), param.documentHash, param.previousRecordHash)
     }).should.throw(BytesLengthError)
   })
 
