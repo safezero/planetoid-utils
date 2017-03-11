@@ -30,7 +30,8 @@ describe('planetoid-utils', () => {
     return {
       timestamp: random(4),
       sender: random(20),
-      value: random(8),
+      gigawei: random(4),
+      documentLength: random(4),
       documentHash: random(32),
     }
   })
@@ -44,7 +45,8 @@ describe('planetoid-utils', () => {
       const record = utils.marshalRecord(
         param.timestamp,
         param.sender,
-        param.value,
+        param.gigawei,
+        param.documentLength,
         param.documentHash,
         recordHash
       )
@@ -81,14 +83,15 @@ describe('planetoid-utils', () => {
       downloadedRecord.should.have.keys([
         'timestamp',
         'sender',
-        'value',
+        'gigawei',
+        'documentLength',
         'documentHash',
         'previousRecordHash'
       ])
       const param = params[params.length - index - 1]
       downloadedRecord.timestamp.should.amorphEqual(param.timestamp, 'array')
       downloadedRecord.sender.should.amorphEqual(param.sender)
-      downloadedRecord.value.should.amorphEqual(param.value)
+      downloadedRecord.gigawei.should.amorphEqual(param.gigawei)
       downloadedRecord.documentHash.should.amorphEqual(param.documentHash)
       downloadedRecord.previousRecordHash.should.amorphEqual(param.previousRecordHash)
     })
@@ -97,10 +100,10 @@ describe('planetoid-utils', () => {
   it('should throw byteslength error when marshalling with bad arguments lengths', () => {
     const param = params[0]
     ;(() => {
-      utils.marshalRecord(random(3), param.sender, param.value, param.documentHash, param.previousRecordHash)
+      utils.marshalRecord(random(3), param.sender, param.gigawei, param.documentLength, param.documentHash, param.previousRecordHash)
     }).should.throw(BytesLengthError)
     ;(() => {
-      utils.marshalRecord(param.timestamp, param.sender, random(3), param.documentHash, param.previousRecordHash)
+      utils.marshalRecord(param.timestamp, param.sender, random(3), param.documentLength, param.documentHash, param.previousRecordHash)
     }).should.throw(BytesLengthError)
   })
 

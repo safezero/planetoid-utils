@@ -16,10 +16,10 @@ function padLeft(array, length) {
   return Array(length - array.length).fill(0).concat(array)
 }
 
-exports.marshalRecord = function marshalRecord(timestamp, sender, value, documentHash, previousRecordHash) {
-  arguguard('marshalRecord', [Amorph, Amorph, Amorph, Amorph, Amorph], arguments)
+exports.marshalRecord = function marshalRecord(timestamp, sender, gigawei, documentLength, documentHash, previousRecordHash) {
+  arguguard('marshalRecord', [Amorph, Amorph, Amorph, Amorph, Amorph, Amorph], arguments)
 
-  var expectedLengths = [4, 20, 8, 32, 32]
+  var expectedLengths = [4, 20, 4, 4, 32, 32]
   var array = []
 
   expectedLengths.forEach((expectedLength, index) => {
@@ -46,8 +46,11 @@ exports.unmarshalRecord = function unmarshalRecord(marshalledRecord) {
     sender: marshalledRecord.as('array', (array) => {
       return array.slice(4, 24)
     }),
-    value: marshalledRecord.as('array', (array) => {
-      return array.slice(24, 32)
+    gigawei: marshalledRecord.as('array', (array) => {
+      return array.slice(24, 28)
+    }),
+    documentLength: marshalledRecord.as('array', (array) => {
+      return array.slice(28, 32)
     }),
     documentHash: marshalledRecord.as('array', (array) => {
       return array.slice(32, 64)
