@@ -37,7 +37,7 @@ exports.unmarshalRecord = function unmarshalRecord(marshalledRecord) {
   arguguard('unmarshalRecord', [Amorph], arguments)
   const marshalledRecordLength = marshalledRecord.to('array').length
   if (marshalledRecordLength !== 96) {
-    throw new BytesLengthError(`Record should be 120 bytes, received ${marshalledRecordLength }`)
+    throw new BytesLengthError(`Record should be 96 bytes, received ${marshalledRecordLength }`)
   }
   const record = {
     timestamp: marshalledRecord.as('array', (array) => {
