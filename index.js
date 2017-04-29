@@ -17,7 +17,7 @@ function padLeft(array, length) {
 }
 
 exports.marshalRecord = function marshalRecord(timestamp, sender, gigawei, documentLength, documentHash, previousRecordHash) {
-  arguguard('marshalRecord', [Amorph, Amorph, Amorph, Amorph, Amorph, Amorph], arguments)
+  arguguard('marshalRecord', ['Amorph', 'Amorph', 'Amorph', 'Amorph', 'Amorph', 'Amorph'], arguments)
 
   var expectedLengths = [4, 20, 4, 4, 32, 32]
   var array = []
@@ -34,7 +34,7 @@ exports.marshalRecord = function marshalRecord(timestamp, sender, gigawei, docum
 }
 
 exports.unmarshalRecord = function unmarshalRecord(marshalledRecord) {
-  arguguard('unmarshalRecord', [Amorph], arguments)
+  arguguard('unmarshalRecord', ['Amorph'], arguments)
   const marshalledRecordLength = marshalledRecord.to('array').length
   if (marshalledRecordLength !== 96) {
     throw new BytesLengthError(`Record should be 96 bytes, received ${marshalledRecordLength }`)
@@ -69,7 +69,7 @@ function isAllZeros(amorph) {
 }
 
 exports.downloadRecords = function downloadRecords(recordHash, getter, setter) {
-  arguguard('download', [Amorph, 'function', 'function'], arguments)
+  arguguard('download', ['Amorph', 'function', 'function'], arguments)
   return getter(recordHash).then((record) => {
     const unmarhalledRecord = exports.unmarshalRecord(record)
     return setter(recordHash, unmarhalledRecord).then(() => {
