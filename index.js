@@ -1,10 +1,6 @@
-const Amorph = require('amorph')
 const arguguard = require('arguguard')
 const BytesLengthError = require('./errors/BytesLengthError')
-const amorphBufferPlugin = require('amorph-buffer')
 
-Amorph.loadPlugin(amorphBufferPlugin)
-Amorph.ready()
 
 function padLeft(array, length) {
   if (array.length === length) {
@@ -30,6 +26,7 @@ exports.marshalRecord = function marshalRecord(timestamp, sender, gigawei, docum
     array.push(..._array)
   })
 
+  const Amorph = timestamp.constructor
   return new Amorph(array, 'array')
 }
 

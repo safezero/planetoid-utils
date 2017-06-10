@@ -17,14 +17,13 @@
   },
   "homepage": "https://github.com/safezero/planetoid-utils#readme",
   "dependencies": {
-    "amorph": "^1.1.0",
-    "amorph-base58": "^1.0.1",
-    "amorph-buffer": "^1.1.1",
     "arguguard": "^2.1.1",
     "keccak256-amorph": "0.0.2",
     "testable-error": "^0.1.1"
   },
   "devDependencies": {
+    "amorph": "^1.1.0",
+    "amorph-base58": "^1.0.1",
     "amorph-buffer": "^1.1.1",
     "chai": "^3.5.0",
     "chai-amorph": "0.0.2",
